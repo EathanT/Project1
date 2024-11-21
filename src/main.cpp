@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstddef>
 #include <math.h>
+
 using namespace std;
 
 
@@ -15,21 +16,46 @@ struct Point {
     float x, y;
 };
 
-class Ant {
+class AntGraphics {
 public:
-    // Changing parameter name to avoid shadowing
-    Ant(const vector<Point>& pathPoints,Texture2D& antImage)
-        : path(pathPoints), currentIndex(0), antTexture(antImage) {
-          
+    
+    
+
+    ~AntGraphics(){
+        UnloadTexture(antTexture);
+     }
+
+    void setAntGraphicValues(vector<Point>& pathPoints,int startHeight, int startWidth)
+        : path(pathPoints), currentIndex(0) {  
+    //Getting Right Ant from png file
+    Image fullAntImage = LoadImage("./resources/ant.png");
+    
+    vector<float> startPoint = {17,320};//Where at starts in image
+    float fullAntWidth = 52; // section ant width
+    float fullAntHeight = 64; // section ant height
+    Rectangle section = {startPoint[0],startPoint[1],fullAntWidth,fullAntHeight};
+    Image antImage = ImageFromImage(fullAntImage,section);
+
+    //Resizing Ant Image
+    int antWidth = static_cast<int>(fullAntWidth/3);
+    int antHeight = static_cast<int>(fullAntHeight/3);
+    ImageResize(&antImage,antWidth,antHeight);
+    ImageColorReplace(&antImage,WHITE,RAYWHITE);
+
+    antTexture = LoadTextureFromImage(antImage);
+
         if (!path.empty()) {
             position.x = path[0].x;
             position.y = path[0].y;
         }
     }
-    ~Ant(){
-        UnloadTexture(antTexture);
-     }
-    void Update(float delta) {
+
+
+  void DrawCity(float x, float y){
+    DrawCircle(static_cast<int>(x), static_cast<int>(y), 5, BLUE);
+  }
+
+  void Update(float delta) {
         if (path.empty()) return;
         
         // Move towards the next point in the path
@@ -38,6 +64,7 @@ public:
         Vector2 direction = {target.x - position.x, target.y - position.y};
         float degrees = (atan2f(direction.y,direction.x) * (180.0f / PI))+ 90;
         currentRotation = degrees;
+       
         
         // Normalize the direction
         float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
@@ -79,48 +106,63 @@ public:
     }
     
 
+   void Start(){
+       // Initialization
+      int startWidth = 820;
+      int startHeight = 420;
+
+      InitWindow(startWidth,startHeight, "2D Ant Path Example");
+
+      setGraphicsValues(pathPoints,startWidth,startHeight);
+
+      SetTargetFPS(60);
+      // Main game loop
+      while (!WindowShouldClose()) // Detect window close button or ESC key
+         {
+           float deltaTime = GetFrameTime();
+
+           // Update
+           Update(deltaTime);
+
+           // Draw
+           BeginDrawing();
+           ClearBackground(RAYWHITE);
+
+           DrawAnt();
+        
+           for(auto& point : path)
+           DrawCity(point.x,point.y);
+
+           DrawText("Ant following a hard-coded path", 10, 10, 20, DARKGRAY);
+
+           EndDrawing();
+         }
+
+    // De-Initialization
+    CloseWindow(); // Close window and OpenGL context}
+  }
+
 private:
     Vector2 position;
-    std::vector<Point> path;
+    std::vector<Point>& path;
     std::size_t currentIndex;// Using std::size_t to match size_t definit 
     float currentRotation{0.0f};
     Texture2D& antTexture;
 };
-
-  void DrawCity(float x, float y){
-    DrawCircle(static_cast<int>(x), static_cast<int>(y), 5, BLUE);
 }
 
 int main() {
-    // Initialization
-    int startWidth = 820;
-    int startHeight = 420;
 
-    InitWindow(startWidth,startHeight, "2D Ant Path Example");
-  
-    //Getting Right Ant from png file
-    Image fullAntImage = LoadImage("./resources/ant.png");
-    
-    vector<float> startPoint = {17,320};//Where at starts in image
-    float fullAntWidth = 52; // section ant width
-    float fullAntHeight = 64; // section ant height
-    Rectangle section = {startPoint[0],startPoint[1],fullAntWidth,fullAntHeight};
-    Image antImage = ImageFromImage(fullAntImage,section);
+  AntGraphics();
 
-    //Resizing Ant Image
-    int antWidth = static_cast<int>(fullAntWidth/3);
-    int antHeight = static_cast<int>(fullAntHeight/3);
-    ImageResize(&antImage,antWidth,antHeight);
-    ImageColorReplace(&antImage,WHITE,RAYWHITE);
-
-    Texture2D antTexture = LoadTextureFromImage(antImage);
-
+  /*
+   * Example Path Setting (Will be added to its own function
+  */
   // Define the ant's path to cover the screen more evenly
   std::vector<Point> path;
 
   int numRows = 3;    // Set the number of rows
-  int numCols = 4;    // Set the number of columns
-  
+  int numCols = 4;    // Set the number of columns 
   
   float verticalSpacing = startHeight / (numRows + 1);
   float horizontalSpacing = startWidth / (numCols + 1);
@@ -134,34 +176,9 @@ int main() {
      }
   }
     
-    Ant ant(path,antTexture);
-    UnloadImage(antImage);
+  //Start Application
+  AntGraphics(path); 
 
-    SetTargetFPS(60);
-    // Main game loop
-    while (!WindowShouldClose()) // Detect window close button or ESC key
-    {
-        float deltaTime = GetFrameTime();
-
-        // Update
-        ant.Update(deltaTime);
-
-        // Draw
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-
-        ant.DrawAnt();
-        
-        for(auto& point : path)
-        DrawCity(point.x,point.y);
-
-        DrawText("Ant following a hard-coded path", 10, 10, 20, DARKGRAY);
-
-        EndDrawing();
-    }
-
-    // De-Initialization
-    CloseWindow(); // Close window and OpenGL context
 
     return 0;
 }
