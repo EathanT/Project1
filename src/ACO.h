@@ -1,41 +1,53 @@
-#include <iostream>
-#include <cmath>
+#ifndef ACO_H
+#define ACO_H
+
 #include <vector>
-#include "antColonyOptimization.cpp"
+#include <memory>
 
 using namespace std;
 
-class Ant{
+struct city {
+    int id;
+    bool visited;
 
-  public:
-    Ant() : route({}), routeLength(0),currCity(-1),pheromones(0.0f) {}
+    city(int cityId) : id(cityId), visited(false) {}
+};
 
+class Ant {
+public:
+    Ant(int antId);
 
-  private:
-    vector<int> route;
+    void visitCity(shared_ptr<city> c);
+    bool hasVisited(int cityId);
+    void reset();
+
+    vector<shared_ptr<city>> route;
     int routeLength;
-    int currCity;
-    float pheromones;
+    shared_ptr<city> currCity;
+
+private:
+    int id;
 };
 
+class ACO {
+public:
+    ACO(vector<shared_ptr<city>>& inCitys, int amtAnts);
+    void run();
 
+private:
+    vector<vector<float>> pheromones;
+    vector<shared_ptr<Ant>> ants;
+    vector<shared_ptr<city>>& citys;
+    const float evaporationRate = 0.5f;
+    const float Q = 100.0f;
+    const int maxIterations = 100;
 
-
-class Ant::ACO{
-  public:
-
-    struct City{
-      int id;
-      bool visited;
-    };
-    
-    // Graph uses an ADJ MATIX 
-    void ACO(vector<vector<int>> Graph);
-  
-    float calcPheromones(Ant guy);
-    
-    float calcProbablity(City curr)
-
-
-
+    void initializeParameters();
+    void initializePheromoneTrails();
+    bool terminationCondition(int iteration);
+    void constructAntSolutions();
+    void updatePheromones();
+    int selectNextCity(shared_ptr<Ant> ant);
 };
+
+#endif // ACO_H
