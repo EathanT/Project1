@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <random>
 
 using namespace std;
 
@@ -17,7 +18,7 @@ class Ant {
 public:
 
     // Ant Constructer
-    Ant(int antId) : id(antId), routeLength(0) {}
+    Ant(int antId) : routeLength(0), id(antId) {}
  
     // Visits a Specified City
     void visitCity(shared_ptr<city> c){
@@ -44,8 +45,6 @@ public:
     vector<shared_ptr<city>> route;
     int routeLength;
     shared_ptr<city> currCity;
-
-private:
     int id;
 };
 
@@ -54,12 +53,13 @@ public:
 
     //Constructer
     ACO(vector<shared_ptr<city>>& inCitys, int amtAnts, float ER)
-    : citys(inCitys), pheromones(inCitys.size(), vector<float>(inCitys.size(), 1.0f)),
+    :  pheromones(inCitys.size(), vector<float>(inCitys.size(), 1.0f)), citys(inCitys),
       maxIterations(ER){
 
       ants.resize(amtAnts);
       for(int i = 0; i < amtAnts; ++i){
         ants[i] = make_shared<Ant>(i);
+        ants[i]->id = i;
       }
 
     }

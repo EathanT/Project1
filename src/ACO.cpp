@@ -43,9 +43,9 @@ void ACO::constructAntSolutions(){
     ant->reset();
     ant->visitCity(citys[startIndex]);
     
-    while(ant->routeLength < city.size()){
+    while(ant->routeLength < citys.size()){
       int nextCityIndex = selectNextCity(ant);
-      if(nextCity != -1)
+      if(nextCityIndex != -1)
         ant->visitCity(citys[nextCityIndex]);
     }
   }
