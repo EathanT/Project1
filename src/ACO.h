@@ -4,8 +4,14 @@
 #include <vector>
 #include <memory>
 #include <random>
+#include <cmath>
+#include <algorithm>
 
 using namespace std;
+
+#define alpha 1
+#define beta  1
+
 
 struct city {
     int id;
@@ -20,14 +26,14 @@ public:
     // Ant Constructer
     Ant(int antId) : routeLength(0), id(antId) {}
  
+ 
     // Visits a Specified City
     void visitCity(shared_ptr<city> c){
       currCity = c;
       currCity->visited = true;
       route.push_back(currCity);
-      routeLength++;
     }
- 
+
     // Checks if city has been visited by an ant
     bool hasVisited(int cityId){
       return ( (currCity->id == cityId) && (currCity->visited == true) );
@@ -68,8 +74,11 @@ public:
 
 private:
 
-    //Vectors
+
+    //Vectors ; I like matrixs :)
     vector<vector<float>> pheromones;
+    vector<vector<float>> probablitys;
+    vector<vector<float>> proximitys;
     vector<shared_ptr<Ant>> ants;
     vector<shared_ptr<city>>& citys;
 
@@ -80,11 +89,13 @@ private:
     
     //functions
     void initializeParameters();
-    void initializePheromoneTrails();
+    void initializePheromoneTrails();    
     bool terminationCondition(int iteration);
+    void updateProbablity(shared_ptr<Ant> ant, vector<int> feasibleCityIndexes);
     void constructAntSolutions();
     void updatePheromones();
     int selectNextCity(shared_ptr<Ant> ant);
+
 };
 
 #endif // ACO_H
