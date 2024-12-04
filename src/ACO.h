@@ -5,19 +5,24 @@
 #include <memory>
 #include <random>
 #include <cmath>
+#include <limits.h>
 #include <algorithm>
 
+
+namespace constants{
+  constexpr float alpha = 1.0f;
+  constexpr float beta = 1.0f;
+}
+
+
 using namespace std;
-
-#define alpha 1
-#define beta  1
-
 
 struct city {
     int id;
     bool visited;
+    float x,y;
 
-    city(int cityId) : id(cityId), visited(false) {}
+    city(int cityId,float posX, float posY) : id(cityId), visited(false), x(posX), y(posY) {}
 };
 
 class Ant {
@@ -36,7 +41,11 @@ public:
 
     // Checks if city has been visited by an ant
     bool hasVisited(int cityId){
-      return ( (currCity->id == cityId) && (currCity->visited == true) );
+      for(const auto& visitedCity : route){
+        if(visitedCity->id == cityId)
+          return true;
+      }
+      return false;
     }
     
     // Resets all of ants values;
@@ -59,7 +68,7 @@ public:
 
     //Constructer
     ACO(vector<shared_ptr<city>>& inCitys, int amtAnts, float ER)
-    :  pheromones(inCitys.size(), vector<float>(inCitys.size(), 1.0f)), citys(inCitys),
+    :  pheromones(inCitys.size(), vector<float>(inCitys.size(), 2.0f)), citys(inCitys),
       maxIterations(ER){
 
       ants.resize(amtAnts);

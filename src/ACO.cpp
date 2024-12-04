@@ -24,12 +24,20 @@ void ACO::run(){
 */
 void ACO::initializeParameters(){
 
-  // proximity matrix initializer, basic base 
-  for(int i = 0; i < citys.size(); ++i){
-    for(int j = 0; j < citys.size(); ++j){
-       proximitys[i][j] = 1; // framework(set all dis to 1):
-                             // Will likely be changed to pixel distance
-                             // or given by user
+  //Set proximity matrix based on Euclidean dis  
+  proximitys.resize(citys.size(),vector<float>(citys.size(),0.0f));
+
+  probablitys.resize(citys.size(),vector<float>(citys.size(),0.0f));
+  
+  for(size_t i = 0; i < citys.size(); ++i){
+    for(size_t j = 0; j < citys.size(); ++j){
+      if(i != j){
+        float dx = citys[i]->x - citys[j]->x;
+        float dy = citys[i]->y - citys[j]->y;
+        proximitys[i][j] = sqrt(pow(dx,2) + pow(dy,2)); // Euclidean dis
+      }else{
+        proximitys[i][j] = numeric_limits<float>::max(); // FLOAT MAX
+      }
     }
   }
 
@@ -39,11 +47,9 @@ void ACO::initializeParameters(){
 *                                                           its own func)
 */
 void ACO::initializePheromoneTrails(){
-
   for(auto& row : pheromones){
     fill(row.begin(),row.end(),1.0f);
   }
-
 }
 
 /* 
@@ -62,22 +68,22 @@ bool ACO::terminationCondition(int iteration){
 * to all other feasible citys
 */
 void ACO::updateProbablity(shared_ptr<Ant> ant,vector<int> feasibleCityIndexes){
-  int i = ant->currCity->id; 
-  for(int go = 0; go < feasibleCityIndexes.size(); ++go){    
-   int j = feasibleCityIndexes.back(); 
-   feasibleCityIndexes.pop_back();
-   
-   //Our top fucntion of our formula (in the report)
-   float top = (pow(pheromones[i][j],alpha) * pow(proximitys[i][j],beta));
+   int i = ant->currCity->id;
+   float bottem = 0.0f;
 
-   //bottem piece of our formula
-   float bottem = 0;
-   for(int l : feasibleCityIndexes){
-     bottem += pow(pheromones[i][l],alpha) * pow(proximitys[i][l],beta);
-   }
-   
-   probablitys[i][j] = (top / bottem);
+  //Our equation bottem summation of all other citys
+  for(int j : feasibleCityIndexes){     
+    bottem += pow(pheromones[i][j],constants::alpha) *
+      pow(proximitys[i][j],constants::beta);
   }
+  
+  //Top of our equation and sets our probablity of that path i to j;
+  for(int j : feasibleCityIndexes){  
+   float top = (pow(pheromones[i][j],constants::alpha) * 
+       pow(proximitys[i][j],constants::beta));
+   probablitys[i][j] = (top/bottem);
+  }
+  
 }
 
 void ACO::constructAntSolutions(){
@@ -141,7 +147,8 @@ int ACO::selectNextCity(shared_ptr<Ant> ant){
     float prob;
 
   };
-
+  
+  //initialize the vector cityProbablitys to keep track of probablitys with city id
   vector<cityIndexProb> cityProbablitys;
   for(int i = 0; i < feasibleCityIndexes.size(); ++i){
    cityIndexProb val;
@@ -150,30 +157,25 @@ int ACO::selectNextCity(shared_ptr<Ant> ant){
 
    cityProbablitys.push_back(val); //Add probablity of a given path
   }
-
-
-
-  int probablityIndex = 0;
-  float selection = rand();
-
-  //For our sort function to sort our values from greatest to least prob
-  struct{ 
-    bool operator()(cityIndexProb a, cityIndexProb b) const {
-      return a.prob > b.prob;
-    }
-  } citySortFunc;
   
-  sort(cityProbablitys.begin(), cityProbablitys.end(),citySortFunc);
+  //Counting total of all city Probablitys
+  float total = 0.0f;
+  for(const auto& prob : cityProbablitys){
+    total += prob.prob;
+  } 
 
-
-  //goes through sorted cityProbs and finds what value selc goes into
-  for(auto val : cityProbablitys){
-    if(selection < val.prob){
-      continue;
+  //Gets random value based
+  float randomValue = static_cast<float>(rand() / RAND_MAX * total);
+  float cumulativeProbability = 0.0f;
+  
+  
+  for(const auto& prob : cityProbablitys){
+    cumulativeProbability += prob.prob;
+    if(cumulativeProbability >= randomValue){
+      return prob.cityId;
     }
-    
-    probablityIndex = val.cityId; 
   }
 
-  return probablityIndex;
+  //Default return in case of an error
+  return cityProbablitys.back().cityId;
 }
