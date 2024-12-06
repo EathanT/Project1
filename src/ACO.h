@@ -3,10 +3,16 @@
 
 #include <vector>
 #include <memory>
+#include <iostream>
 #include <random>
 #include <cmath>
 #include <limits.h>
 #include <algorithm>
+#include <cstddef>
+#include <ctime>
+
+
+using namespace std;
 
 
 namespace constants{
@@ -14,8 +20,8 @@ namespace constants{
   constexpr float beta = 1.0f;
 }
 
+inline mt19937 rng(static_cast<unsigned>(time(nullptr)));
 
-using namespace std;
 
 struct city {
     int id;
@@ -24,6 +30,7 @@ struct city {
 
     city(int cityId,float posX, float posY) : id(cityId), visited(false), x(posX), y(posY) {}
 };
+
 
 class Ant {
 public:
@@ -76,13 +83,36 @@ public:
         ants[i] = make_shared<Ant>(i);
         ants[i]->id = i;
       }
+      
+      initializeParameters();
+    }
 
+    vector<shared_ptr<Ant>>& getAnts(){
+      return ants;
+    }
+
+    vector<vector<float>>& getPheromones(){
+      return pheromones;
+    }
+
+    vector<vector<float>>& getProximity(){
+      return proximitys;
+    }
+
+    vector<vector<float>>& getProbablitys(){
+      return probablitys;
+    }
+   
+    void step(){
+      cout << "8" << endl;
+      constructAntSolutions();
+      cout << "9" << endl;
+      updatePheromones();
     }
 
     void run();
 
-private:
-
+    private: 
 
     //Vectors ; I like matrixs :)
     vector<vector<float>> pheromones;
@@ -104,6 +134,11 @@ private:
     void constructAntSolutions();
     void updatePheromones();
     int selectNextCity(shared_ptr<Ant> ant);
+
+    int getRandomCityIndex(int numberOfCities){
+      uniform_int_distribution<int> dist(0,numberOfCities-1);
+      return dist(rng);
+    }
 
 };
 
