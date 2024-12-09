@@ -5,71 +5,79 @@ int main() {
     // Example list of cities, replace with realistic coordinates
     vector<shared_ptr<city>> cities;
     int numberOfCities = 10; // Example number of cities
-
-    //random number gen for citie placement
-    const float margin = 10.0f;
-    uniform_real_distribution<> dis_width(0,WIDTH - margin);
-    uniform_real_distribution<> dis_height(0, HEIGHT - margin);
+    const float margin = 10.0f; // min space inbetween cities
+    uniform_real_distribution<> dis_width(0,(WIDTH / 2) - margin);
+    uniform_real_distribution<> dis_height(0,(HEIGHT / 2) - margin);
 
     for (int i = 0; i < numberOfCities; ++i) {
         float x = dis_width(rng); //generate random x coords
         float y = dis_height(rng); // gen random y cords
-        cities.push_back(make_shared<city>(i,x,y));
+        Vector2 randomPos = {x,y};
+        cities.push_back(make_shared<city>(i,0,randomPos));
     }
+
     //Print out citys for debug/extra info
     for(const auto& c : cities){
-      cout << "City " << c->id << ": (" << c->x << ", " << c->y << ")" << endl;
+      cout << "City " << c->id << ": (" << c->position.x << ", " << c->position.y << ")" << endl;
     }
 
     // Prepare the ACO instance
-    int numAnts = 10;  // Example number of ants
-    float elitismRate = 100;  // Example elitism rate
+    const int numAnts = 10;  // Example number of ants
+    const float elitismRate = 100.0f;  // Example elitism rate
     ACO aco(cities, numAnts, elitismRate);
 
-    // Map the ACO results onto Points for AntGraphics
-    std::vector<Point> path;
-    for (auto& city : cities) {
-        Point p;
-        // Example positioning logic. Replace with actual city coordinate logic.
-        p.x = city->x;
-        p.y = city->y;
-        path.push_back(p);
-    }
-
-    // Start the visualization
-    int screenWidth = WIDTH;
-    int screenHeight = HEIGHT;
-    InitWindow(screenWidth, screenHeight, "ACO Path Visualization");
-
-    AntGraphics antGraphics(aco.getAnts(),aco.getPheromones(),aco.getProximity(),aco.getProbablitys(),path);
-    
+    // Start the visualizatio
+    InitWindow(WIDTH, HEIGHT, "ACO Path Visualization");  
     SetTargetFPS(60);
+    
+    vector<shared_ptr<Ant>> ants = aco.getAnts();
+    int curAnt = 0; 
+    auto& ant = ants[curAnt];
+cout << "1" << endl;
+    
+    AntGraphics antGraphics(ants,aco.getPheromones(),
+                aco.getProximity(),aco.getProbablitys(),cities); 
+    cout << "1.5" << endl;
+    antGraphics.setAnt(ant);
+    bool visualizationComplete = false;
+   
+
+cout << "2" << endl;
+    //Main Loop
     while (!WindowShouldClose())  // Main game loop
     {
+        //Get Current Ant
         float deltaTime = GetFrameTime();
-        cout << "1" << endl;
-        BeginDrawing();
+        DrawText("Ant Colony Optimization :)", 10, 10, 20, DARKGRAY);
         
-        cout << "2" << endl;
-        // Update ACO
-        aco.step();
+        BeginDrawing(); 
+        ClearBackground(RAYWHITE);
         
-        cout << "3" << endl;
+        
+        if(antGraphics.reachedTarget()){ 
+          aco.step(ant);
+        }
+
+        //Update and draw the ant following its computed Path
+        antGraphics.Update(deltaTime);
+        antGraphics.RenderScene(); 
+
+        if(ant->routeLength == cities.size()){
+          cout << "Ant finished its course" << endl;
+          ant->reset();
+          curAnt++;
+          if(curAnt < numAnts){
+            ant = ants[curAnt];
+            aco.step(ant); //Watch out for this(unsure if its correct)
+            antGraphics.setAnt(ant); 
+          }
+        }  
+        
         //update screen
         antGraphics.Update(deltaTime);
 
-        cout << "4" << endl;
-        // Draw
-        ClearBackground(RAYWHITE);
-
-        cout << "5" << endl;
         antGraphics.RenderScene();
 
-        cout << "6" << endl;
-
-        DrawText("Ant Colony Optimization :)", 10, 10, 20, DARKGRAY);
-
-        cout << "7" << endl;
         EndDrawing();
     }
 

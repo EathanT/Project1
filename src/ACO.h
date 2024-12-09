@@ -1,19 +1,7 @@
 #ifndef ACO_H
 #define ACO_H
 
-#include <vector>
-#include <memory>
-#include <iostream>
-#include <random>
-#include <cmath>
-#include <limits.h>
-#include <algorithm>
-#include <cstddef>
-#include <ctime>
-
-
-using namespace std;
-
+#include "Ant.h"
 
 namespace constants{
   constexpr float alpha = 1.0f;
@@ -23,53 +11,6 @@ namespace constants{
 inline mt19937 rng(static_cast<unsigned>(time(nullptr)));
 
 
-struct city {
-    int id;
-    bool visited;
-    float x,y;
-
-    city(int cityId,float posX, float posY) : id(cityId), visited(false), x(posX), y(posY) {}
-};
-
-
-class Ant {
-public:
-
-    // Ant Constructer
-    Ant(int antId) : routeLength(0), id(antId) {}
- 
- 
-    // Visits a Specified City
-    void visitCity(shared_ptr<city> c){
-      currCity = c;
-      currCity->visited = true;
-      route.push_back(currCity);
-    }
-
-    // Checks if city has been visited by an ant
-    bool hasVisited(int cityId){
-      for(const auto& visitedCity : route){
-        if(visitedCity->id == cityId)
-          return true;
-      }
-      return false;
-    }
-    
-    // Resets all of ants values;
-    void reset(){
-      for(auto& city : route)
-        city->visited = false;
-
-      route.clear();
-      routeLength = 0;
-    }
-
-    vector<shared_ptr<city>> route;
-    int routeLength;
-    shared_ptr<city> currCity;
-    int id;
-};
-
 class ACO {
 public:
 
@@ -77,13 +18,19 @@ public:
     ACO(vector<shared_ptr<city>>& inCitys, int amtAnts, float ER)
     :  pheromones(inCitys.size(), vector<float>(inCitys.size(), 2.0f)), citys(inCitys),
       maxIterations(ER){
-
+      uniform_int_distribution<int> antStart(0,citys.size()-1);
+     
+      cout << "All ants include : [";
       ants.resize(amtAnts);
       for(int i = 0; i < amtAnts; ++i){
         ants[i] = make_shared<Ant>(i);
         ants[i]->id = i;
+        ants[i]->currCity = citys[antStart(rng)];
+        ants[i]->position = ants[i]->currCity->position;
+        cout <<"Ant: " << i << " City: " << ants[i]->currCity->id << ", " << endl; 
       }
-      
+      cout << "]" << endl;
+
       initializeParameters();
     }
 
@@ -103,14 +50,16 @@ public:
       return probablitys;
     }
    
-    void step(){
-      cout << "8" << endl;
-      constructAntSolutions();
-      cout << "9" << endl;
-      updatePheromones();
+    void step(shared_ptr<Ant>& ant){
+      cout << "Step on ant: " << ant->id << endl;
+      ant->currCity = citys[selectNextCity(ant)];
+      constructAntSolutions(ant);
+      updatePheromones(ant);
     }
 
     void run();
+
+    int selectNextCity(shared_ptr<Ant> ant);
 
     private: 
 
@@ -131,9 +80,8 @@ public:
     void initializePheromoneTrails();    
     bool terminationCondition(int iteration);
     void updateProbablity(shared_ptr<Ant> ant, vector<int> feasibleCityIndexes);
-    void constructAntSolutions();
-    void updatePheromones();
-    int selectNextCity(shared_ptr<Ant> ant);
+    void constructAntSolutions(shared_ptr<Ant>& ant);
+    void updatePheromones(shared_ptr<Ant>& ant);
 
     int getRandomCityIndex(int numberOfCities){
       uniform_int_distribution<int> dist(0,numberOfCities-1);
