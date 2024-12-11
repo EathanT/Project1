@@ -2,92 +2,115 @@
 #define ACO_H
 
 #include "Ant.h"
+#include <iostream>
+#include <random>
 
-namespace constants{
-  constexpr float alpha = 1.0f;
-  constexpr float beta = 1.0f;
+using namespace std;
+
+// Namespace containing constants for the ACO algorithm
+namespace constants {
+    constexpr float alpha = 1.0f; // Importance of pheromone
+    constexpr float beta = 1.0f;  // Importance of heuristic information
 }
 
+// Random number generator
 inline mt19937 rng(static_cast<unsigned>(time(nullptr)));
 
-
+// A class representing the Ant Colony Optimization algorithm
 class ACO {
 public:
 
-    //Constructer
+    // Constructor to initialize ACO with cities, number of ants, and maxIterations(wont be used rn)
     ACO(vector<shared_ptr<city>>& inCitys, int amtAnts, float ER)
-    :  pheromones(inCitys.size(), vector<float>(inCitys.size(), 2.0f)), citys(inCitys),
-      maxIterations(ER){
-      uniform_int_distribution<int> antStart(0,citys.size()-1);
-     
-      cout << "All ants include : [";
+    : pheromones(inCitys.size(), vector<float>(inCitys.size(), 2.0f)), citys(inCitys),
+      maxIterations(ER) {
+
+      // Create ant instances and assign IDs
       ants.resize(amtAnts);
-      for(int i = 0; i < amtAnts; ++i){
+      for (int i = 0; i < amtAnts; ++i) {
         ants[i] = make_shared<Ant>(i);
         ants[i]->id = i;
-        ants[i]->currCity = citys[antStart(rng)];
-        ants[i]->position = ants[i]->currCity->position;
-        cout <<"Ant: " << i << " City: " << ants[i]->currCity->id << ", " << endl; 
       }
-      cout << "]" << endl;
 
       initializeParameters();
+      initializePheromoneTrails();
     }
 
-    vector<shared_ptr<Ant>>& getAnts(){
-      return ants;
+    // Returns a reference to the vector of ant objects
+    vector<shared_ptr<Ant>>& getAnts() {
+        return ants;
     }
 
-    vector<vector<float>>& getPheromones(){
-      return pheromones;
+    // Returns a reference to the pheromone matrix
+    vector<vector<float>>& getPheromones() {
+        return pheromones;
     }
 
-    vector<vector<float>>& getProximity(){
-      return proximitys;
+    // Returns a reference to the proximity matrix
+    vector<vector<float>>& getProximity() {
+        return proximitys;
     }
 
-    vector<vector<float>>& getProbablitys(){
-      return probablitys;
+    // Returns a reference to the probability matrix
+    vector<vector<float>>& getProbablitys() {
+        return probablitys;
     }
    
-    void step(shared_ptr<Ant>& ant){
-      cout << "Step on ant: " << ant->id << endl;
-      ant->currCity = citys[selectNextCity(ant)];
-      constructAntSolutions(ant);
-      updatePheromones(ant);
+    // Perform a single step for the specified ant
+    void step(shared_ptr<Ant>& ant) {
+        ant->currCity = citys[selectNextCity(ant)];
+        constructAntSolutions(ant);
+        if (ant->route.size() == citys.size()) {
+            updatePheromones(ant);
+        }
     }
 
+    // Run the ACO algorithm
     void run();
 
+    // Select the next city for the ant to visit based on probabilities
     int selectNextCity(shared_ptr<Ant> ant);
 
-    private: 
+private: 
 
-    //Vectors ; I like matrixs :)
+    // Vectors representing matrices for pheromones, probabilities, and proximities
     vector<vector<float>> pheromones;
     vector<vector<float>> probablitys;
     vector<vector<float>> proximitys;
     vector<shared_ptr<Ant>> ants;
     vector<shared_ptr<city>>& citys;
 
-    //Single Values
+    // Single value constants for the algorithm
     const float evaporationRate = 0.5f;
-    const float Q = 100.0f;
+    const float Q = 100.0f; // Constant for pheromone deposit
     int maxIterations;
     
-    //functions
+    // Initialize parameters for the algorithm
     void initializeParameters();
+    
+    // Display all pheromone trails (for debugging or information)
+    void showAllPheromoneTrails();
+    
+    // Initialize the pheromone trails with initial values
     void initializePheromoneTrails();    
+    
+    // Check if the termination condition of the algorithm is met
     bool terminationCondition(int iteration);
+    
+    // Update the probabilities for choosing the next city
     void updateProbablity(shared_ptr<Ant> ant, vector<int> feasibleCityIndexes);
+    
+    // Construct solutions based on the current state of the ant and environment
     void constructAntSolutions(shared_ptr<Ant>& ant);
+    
+    // Update pheromones based on the ant's route
     void updatePheromones(shared_ptr<Ant>& ant);
 
-    int getRandomCityIndex(int numberOfCities){
-      uniform_int_distribution<int> dist(0,numberOfCities-1);
-      return dist(rng);
+    // Get a random city index
+    int getRandomCityIndex(int numberOfCities) {
+        uniform_int_distribution<int> dist(0, numberOfCities - 1);
+        return dist(rng);
     }
-
 };
 
 #endif // ACO_H

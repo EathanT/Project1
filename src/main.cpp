@@ -1,87 +1,114 @@
 #include "AntGraphics.cpp"
-
+#include "test.cpp"
 int main() {
+    SetTraceLogLevel(LOG_ERROR);
+    int numAnts = 10;  // Default number of ants
+    int numberOfCities = 10; // Default number of cities
+    float simSpeed = 20 * numberOfCities; // Default simulation speed based on number of cities
+    float speedSelect = 1;
 
-    // Example list of cities, replace with realistic coordinates
+    // User input to customize the simulation
+    cout << "How many ants do you want?" << endl;
+    cin >> numAnts; 
+    cout << "How many cities do you want?" << endl;
+    cin >> numberOfCities; 
+    cout << "How fast do you want your sim? (1 is normal speed)" << endl;
+    cin >> speedSelect;
+    simSpeed *= speedSelect;
+
     vector<shared_ptr<city>> cities;
-    int numberOfCities = 10; // Example number of cities
-    const float margin = 10.0f; // min space inbetween cities
-    uniform_real_distribution<> dis_width(0,(WIDTH / 2) - margin);
-    uniform_real_distribution<> dis_height(0,(HEIGHT / 2) - margin);
+    const float margin = 1000 / numberOfCities; // Minimum space between cities
+    uniform_real_distribution<> dis_width(0, (WIDTH / 2));
+    uniform_real_distribution<> dis_height(0, (HEIGHT / 2));
 
+    // Generate cities with unique random positions
     for (int i = 0; i < numberOfCities; ++i) {
-        float x = dis_width(rng); //generate random x coords
-        float y = dis_height(rng); // gen random y cords
-        Vector2 randomPos = {x,y};
-        cities.push_back(make_shared<city>(i,0,randomPos));
+        float x = dis_width(rng) + 10;
+        float y = dis_height(rng) + 10;
+        bool passCheck = false;
+
+        while (!passCheck) {
+            passCheck = true;
+            for (int j = 0; j < i; j++) {
+                auto otherCity = cities[j];
+                float length = sqrt(pow((otherCity->position.x - x), 2)
+                    + pow((otherCity->position.y - y), 2));
+                if (length < margin) {
+                    passCheck = false;
+                    x = dis_width(rng) + 10;
+                    y = dis_height(rng) + 10;
+                }
+            }
+        }
+        Vector2 randomPos = {x, y};
+        cities.push_back(make_shared<city>(i, false, randomPos));
     }
 
-    //Print out citys for debug/extra info
-    for(const auto& c : cities){
-      cout << "City " << c->id << ": (" << c->position.x << ", " << c->position.y << ")" << endl;
-    }
-
-    // Prepare the ACO instance
-    const int numAnts = 10;  // Example number of ants
-    const float elitismRate = 100.0f;  // Example elitism rate
+    // Setup Ant Colony Optimization (ACO) instance
+    const float elitismRate = 100.0f; // Example elitism rate
     ACO aco(cities, numAnts, elitismRate);
 
-    // Start the visualizatio
+    // Initialize window for visualization
     InitWindow(WIDTH, HEIGHT, "ACO Path Visualization");  
     SetTargetFPS(60);
     
     vector<shared_ptr<Ant>> ants = aco.getAnts();
     int curAnt = 0; 
     auto& ant = ants[curAnt];
-cout << "1" << endl;
     
-    AntGraphics antGraphics(ants,aco.getPheromones(),
-                aco.getProximity(),aco.getProbablitys(),cities); 
-    cout << "1.5" << endl;
-    antGraphics.setAnt(ant);
-    bool visualizationComplete = false;
-   
+    AntGraphics antGraphics(ants, aco.getPheromones(), aco.getProximity(),
+                            aco.getProbablitys(), cities, simSpeed); 
 
-cout << "2" << endl;
-    //Main Loop
-    while (!WindowShouldClose())  // Main game loop
-    {
-        //Get Current Ant
+    bool visualizationComplete = false;
+
+    // Main game loop
+    while (!WindowShouldClose()) {
         float deltaTime = GetFrameTime();
-        DrawText("Ant Colony Optimization :)", 10, 10, 20, DARKGRAY);
+
+        BeginDrawing();
         
-        BeginDrawing(); 
+        if (!visualizationComplete) {
+
         ClearBackground(RAYWHITE);
         
-        
-        if(antGraphics.reachedTarget()){ 
-          aco.step(ant);
+        // Setup the ant at the start of a route
+            if (ant->route.empty()) {
+                uniform_int_distribution<int> antStart(0, cities.size()-1);
+                ant->visitCity(cities[antStart(rng)]);
+                ant->position = ant->currCity->position;
+                antGraphics.setAnt(ant);
+            }
+
+            antGraphics.drawText(ant);
+
+            // Advance and render the ant's path
+            if (antGraphics.reachedTarget()) {
+                aco.step(ant);
+            }
+            
+            antGraphics.Update(deltaTime);
+            antGraphics.RenderScene(); 
+
+            // Reset or progress to the next ant upon completion
+            if (ant->route.size() == cities.size() && antGraphics.reachedTarget()) {
+                ant->reset();
+                ++curAnt;
+                if (curAnt < numAnts) {
+                    ant = ants[curAnt];
+                } else {
+                    visualizationComplete = true;
+                }
+            }
         }
 
-        //Update and draw the ant following its computed Path
-        antGraphics.Update(deltaTime);
-        antGraphics.RenderScene(); 
-
-        if(ant->routeLength == cities.size()){
-          cout << "Ant finished its course" << endl;
-          ant->reset();
-          curAnt++;
-          if(curAnt < numAnts){
-            ant = ants[curAnt];
-            aco.step(ant); //Watch out for this(unsure if its correct)
-            antGraphics.setAnt(ant); 
-          }
-        }  
-        
-        //update screen
-        antGraphics.Update(deltaTime);
-
-        antGraphics.RenderScene();
-
         EndDrawing();
+
     }
 
     // De-Initialization
     CloseWindow();
+
+
+    compareACOBestRoute(cities,aco.getPheromones()); 
     return 0;
 }
