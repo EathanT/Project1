@@ -6,6 +6,8 @@ int main() {
     int numberOfCities = 10; // Default number of cities
     float simSpeed = 20 * numberOfCities; // Default simulation speed based on number of cities
     float speedSelect = 1;
+    float newQ = 100;
+    float newEvaporationRate = 0.5;
 
     // User input to customize the simulation
     cout << "How many ants do you want?" << endl;
@@ -15,6 +17,10 @@ int main() {
     cout << "How fast do you want your sim? (1 is normal speed)" << endl;
     cin >> speedSelect;
     simSpeed *= speedSelect;
+    cout <<"What do you want your Q to be?(100 is normal)" << endl;
+    cin >> newQ;
+    cout <<"What do you want your Evaporation Rate to be?(0.5 is normal)" << endl;
+    cin >> newEvaporationRate;
 
     vector<shared_ptr<city>> cities;
     const float margin = 1000 / numberOfCities; // Minimum space between cities
@@ -45,8 +51,7 @@ int main() {
     }
 
     // Setup Ant Colony Optimization (ACO) instance
-    const float elitismRate = 100.0f; // Example elitism rate
-    ACO aco(cities, numAnts, elitismRate);
+    ACO aco(cities, numAnts,newQ,newEvaporationRate);
 
     // Initialize window for visualization
     InitWindow(WIDTH, HEIGHT, "ACO Path Visualization");  

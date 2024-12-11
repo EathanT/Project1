@@ -37,15 +37,17 @@ public:
       currCity = c;
       currCity->visited = true;
       route.push_back(currCity);
-      routeLength++;
     }
 
     // Visits the current city
     // Marks the current city as visited and appends it to the route
     void visitCity(){
       currCity->visited = true;
+      routeLength += sqrt(pow((currCity->position.x - route.back()->position.x),2) + 
+                          pow((currCity->position.y - route.back()->position.y),2));
+      cout << routeLength << endl;
       route.push_back(currCity);
-      routeLength++;
+      
     }
 
     // Checks if a city has been visited by the ant

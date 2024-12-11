@@ -80,7 +80,7 @@ void ACO::updatePheromones(shared_ptr<Ant>& ant){
         }
     }
 
-    // Add pheromone per path used by ants
+    // Add pheromone per path used by ant
     float concentration = Q / ant->routeLength;
     for (size_t i = 0; i < ant->route.size() - 1; ++i) {
         int from = ant->route[i]->id;

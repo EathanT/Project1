@@ -10,7 +10,7 @@ using namespace std;
 // Namespace containing constants for the ACO algorithm
 namespace constants {
     constexpr float alpha = 1.0f; // Importance of pheromone
-    constexpr float beta = 1.0f;  // Importance of heuristic information
+    constexpr float beta = 4.0f;  // Importance of heuristic information
 }
 
 // Random number generator
@@ -21,9 +21,9 @@ class ACO {
 public:
 
     // Constructor to initialize ACO with cities, number of ants, and maxIterations(wont be used rn)
-    ACO(vector<shared_ptr<city>>& inCitys, int amtAnts, float ER)
+    ACO(vector<shared_ptr<city>>& inCitys, int amtAnts, float newQ,float newER)
     : pheromones(inCitys.size(), vector<float>(inCitys.size(), 2.0f)), citys(inCitys),
-      maxIterations(ER) {
+      Q(newQ),evaporationRate(newER) {
 
       // Create ant instances and assign IDs
       ants.resize(amtAnts);
@@ -62,7 +62,7 @@ public:
         constructAntSolutions(ant);
         if (ant->route.size() == citys.size()) {
             updatePheromones(ant);
-        }
+       }
     }
 
     // Run the ACO algorithm
@@ -70,6 +70,8 @@ public:
 
     // Select the next city for the ant to visit based on probabilities
     int selectNextCity(shared_ptr<Ant> ant);
+    float evaporationRate = 0.5f;
+    float Q = 500.0f; // Constant for pheromone deposit
 
 private: 
 
@@ -81,8 +83,6 @@ private:
     vector<shared_ptr<city>>& citys;
 
     // Single value constants for the algorithm
-    const float evaporationRate = 0.5f;
-    const float Q = 100.0f; // Constant for pheromone deposit
     int maxIterations;
     
     // Initialize parameters for the algorithm
