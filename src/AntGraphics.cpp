@@ -85,7 +85,7 @@ public:
         Vector2 target = currCity->position;
         Vector2 direction = {target.x - currAnt->position.x, target.y - currAnt->position.y};
         float length = sqrt(pow(direction.x, 2.0f) + pow(direction.y, 2.0f));
-        return length < (speed / 10);
+        return length < 2;
     }
 
     float speed{500.0f}; // Simulation speed
@@ -154,15 +154,32 @@ private:
             direction.y /= length;
         }
 
-        move(direction, delta);
+        move(direction, delta, target);
     }
    
     // Move the ant in the specified direction
-    void move(const Vector2& direction, float delta) {
+    void move(const Vector2& direction, float delta,Vector2 target) {
         float speedX = direction.x * speed * delta;
         float speedY = direction.y * speed * delta;
-        currAnt->position.x += speedX;
-        currAnt->position.y += speedY;
+
+        float newPosX = currAnt->position.x + speedX;
+        float newPosY = currAnt->position.y + speedY;
+
+        //Calc Dists
+        float initialDistance = sqrt(pow(target.x - currAnt->position.x,2) + 
+                                     pow(target.y - currAnt->position.y,2));
+        float newDistance = sqrt(pow(target.x - newPosX, 2) +
+                                 pow(target.y - newPosY, 2));
+
+        //check if target has been reached or passed
+        if(newDistance >= initialDistance){
+          //if new dist is greater/equal it means it has been passed/reached
+          //Adjusting pos to target in such case 
+          currAnt->position = target;
+        }else{
+          //Update pos to new pos
+          currAnt->position = {newPosX,newPosY};
+        }
     }
 
     // Render the graph of cities
@@ -175,7 +192,7 @@ private:
 
         for (size_t i = 0; i < cities.size() - 1; ++i) {
             for (size_t j = i + 1; j < cities.size(); ++j) {
-                DrawLineEx(cities[i]->position, cities[j]->position, pheromones[i][j] * (0.01 * size), PATHGREEN);
+                DrawLineEx(cities[i]->position, cities[j]->position, pheromones[i][j] * size, PATHGREEN);
             }
         }
     }

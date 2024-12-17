@@ -70,6 +70,12 @@ public:
       routeLength = 0;
     }
 
+    void clearCitys(){
+      for(auto& city : route)
+        city->visited = false;
+
+    }
+
     vector<shared_ptr<city>> route; // Vector to store the route taken by the ant
     Vector2 position; // Current position of the ant in 2D space
     int routeLength; // Length of the route taken by the ant

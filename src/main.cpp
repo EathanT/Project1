@@ -8,6 +8,7 @@ int main() {
     float speedSelect = 1;
     float newQ = 100;
     float newEvaporationRate = 0.5;
+    int iterations = 1;
 
     // User input to customize the simulation
     cout << "How many ants do you want?" << endl;
@@ -21,6 +22,8 @@ int main() {
     cin >> newQ;
     cout <<"What do you want your Evaporation Rate to be?(0.5 is normal)" << endl;
     cin >> newEvaporationRate;
+    cout <<"How many iterations do you want?" << endl;
+    cin >> iterations;
 
     vector<shared_ptr<city>> cities;
     const float margin = 1000 / numberOfCities; // Minimum space between cities
@@ -58,22 +61,24 @@ int main() {
     SetTargetFPS(60);
     
     vector<shared_ptr<Ant>> ants = aco.getAnts();
-    int curAnt = 0; 
-    auto& ant = ants[curAnt];
+    int currAnt = 0; 
+    auto& ant = ants[currAnt];
     
     AntGraphics antGraphics(ants, aco.getPheromones(), aco.getProximity(),
                             aco.getProbablitys(), cities, simSpeed); 
 
     bool visualizationComplete = false;
+    int currIteration = 0;
 
     // Main game loop
     while (!WindowShouldClose()) {
         float deltaTime = GetFrameTime();
-
         BeginDrawing();
+        if (currIteration != iterations) {
+         
         
-        if (!visualizationComplete) {
-
+        cout << currIteration << endl;
+        
         ClearBackground(RAYWHITE);
         
         // Setup the ant at the start of a route
@@ -86,25 +91,36 @@ int main() {
 
             antGraphics.drawText(ant);
 
-            // Advance and render the ant's path
-            if (antGraphics.reachedTarget()) {
+
+
+            // Reset or progress to the next ant upon completion
+            if (antGraphics.reachedTarget()){
+              if(ant->route.size() != cities.size()){
+                //Next Steop on ant if route hasnt visted every city
                 aco.step(ant);
+              }else{
+                ant->clearCitys();
+                ++currAnt;
+                if (currAnt < numAnts) {
+                    ant = ants[currAnt];
+                } else {
+                    aco.updatePheromones();
+                    currAnt = 0;
+                    for(auto& antRes : ants){
+                      antRes->reset();
+                    }
+                    ant = ants[currAnt];
+                    currIteration++;
+                }
+              }
             }
-            
+
             antGraphics.Update(deltaTime);
             antGraphics.RenderScene(); 
 
-            // Reset or progress to the next ant upon completion
-            if (ant->route.size() == cities.size() && antGraphics.reachedTarget()) {
-                ant->reset();
-                ++curAnt;
-                if (curAnt < numAnts) {
-                    ant = ants[curAnt];
-                } else {
-                    visualizationComplete = true;
-                }
-            }
+
         }
+
 
         EndDrawing();
 
