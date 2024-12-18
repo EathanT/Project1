@@ -57,15 +57,15 @@ int main() {
     ACO aco(cities, numAnts,newQ,newEvaporationRate);
 
     // Initialize window for visualization
-    InitWindow(WIDTH, HEIGHT, "ACO Path Visualization");  
+    InitWindow(WIDTH, HEIGHT, "ACO Path Visualization");
     SetTargetFPS(60);
-    
+
     vector<shared_ptr<Ant>> ants = aco.getAnts();
-    int currAnt = 0; 
+    int currAnt = 0;
     auto& ant = ants[currAnt];
-    
+
     AntGraphics antGraphics(ants, aco.getPheromones(), aco.getProximity(),
-                            aco.getProbablitys(), cities, simSpeed); 
+                            aco.getProbablitys(), cities, simSpeed);
 
     bool visualizationComplete = false;
     int currIteration = 0;
@@ -75,12 +75,9 @@ int main() {
         float deltaTime = GetFrameTime();
         BeginDrawing();
         if (currIteration != iterations) {
-         
-        
-        cout << currIteration << endl;
-        
+
         ClearBackground(RAYWHITE);
-        
+
         // Setup the ant at the start of a route
             if (ant->route.empty()) {
                 uniform_int_distribution<int> antStart(0, cities.size()-1);
@@ -95,6 +92,7 @@ int main() {
 
             // Reset or progress to the next ant upon completion
             if (antGraphics.reachedTarget()){
+              
               if(ant->route.size() != cities.size()){
                 //Next Steop on ant if route hasnt visted every city
                 aco.step(ant);

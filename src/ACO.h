@@ -9,8 +9,8 @@ using namespace std;
 
 // Namespace containing constants for the ACO algorithm
 namespace constants {
-    constexpr float alpha = 0.5f; // Importance of pheromone
-    constexpr float beta = 0.8f;  // Importance of heuristic information
+    constexpr float alpha = 1; // Importance of pheromone
+    constexpr float beta = 5;  // Importance of heuristic information
 }
 
 // Random number generator
@@ -58,10 +58,8 @@ public:
    
     // Perform a single step for the specified ant
     void step(shared_ptr<Ant>& ant) {
-      cout << "Step 1" << endl;
         ant->currCity = citys[selectNextCity(ant)];
 
-      cout << "Step 2" << endl;
         constructAntSolutions(ant);
     }
 

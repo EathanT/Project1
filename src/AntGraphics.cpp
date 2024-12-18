@@ -15,6 +15,11 @@ struct Point {
 // Class responsible for rendering graphics of the ants and the city graph
 class AntGraphics {
 public:
+
+    /*float dist(shared_ptr<city> A shared_ptr<city> B){
+
+    }
+    */
     // Constructor that initializes the graphical representation of the ants
     AntGraphics(vector<shared_ptr<Ant>>& antRefs, vector<vector<float>>& pheromonesIn, vector<vector<float>>& proximitysIn,
                 vector<vector<float>>& probablitysIn, vector<shared_ptr<city>> citiesIn, float simSpeed)
@@ -165,9 +170,11 @@ private:
         float newPosX = currAnt->position.x + speedX;
         float newPosY = currAnt->position.y + speedY;
 
+
+
         //Calc Dists
         float initialDistance = sqrt(pow(target.x - currAnt->position.x,2) + 
-                                     pow(target.y - currAnt->position.y,2));
+                                    pow(target.y - currAnt->position.y,2));
         float newDistance = sqrt(pow(target.x - newPosX, 2) +
                                  pow(target.y - newPosY, 2));
 

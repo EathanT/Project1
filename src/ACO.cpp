@@ -83,7 +83,6 @@ void ACO::updatePheromones(){
 
     // Add pheromone per path used by ant
     float concentration = Q / ant->routeLength;
-    cout << "Concentration: " << concentration << endl;
     for (size_t i = 0; i < ant->route.size() - 1; ++i) {
         int from = ant->route[i]->id;
         int to = ant->route[i + 1]->id;
@@ -97,7 +96,6 @@ void ACO::updatePheromones(){
  * Chooses the next city for the ant to visit
  */
 int ACO::selectNextCity(shared_ptr<Ant> ant) {
-  cout << "NC 1" << endl;
     vector<int> feasibleCityIndexes;
     for (size_t i = 0; i < citys.size(); ++i){
         if (!ant->hasVisited(citys[i]->id)) {
@@ -109,7 +107,6 @@ int ACO::selectNextCity(shared_ptr<Ant> ant) {
         return -1; // No feasible cities found
     }
 
-  cout << "NC 2" << endl;
     // Probability function call
 updateProbablity(ant, feasibleCityIndexes);
 
@@ -118,7 +115,6 @@ updateProbablity(ant, feasibleCityIndexes);
         float prob;
     };
 
-  cout << "NC 1" << endl;
     struct
     {
         bool operator()(cityIndexProb a, cityIndexProb b) const {
@@ -127,7 +123,6 @@ updateProbablity(ant, feasibleCityIndexes);
     }
     CIPsort;
 
-  cout << "NC 3" << endl;
     // Track probabilities with city id
     vector<cityIndexProb> cityProbablitys;
     for (int i : feasibleCityIndexes) {
@@ -135,11 +130,9 @@ updateProbablity(ant, feasibleCityIndexes);
         val.cityId = i;
         val.prob = probablitys[ant->currCity->id][i];
         cout << (probablitys[i][ant->currCity->id]) << endl;
-        cout << "City " << i << "'s Prob Is: " << val.prob << endl;
         cityProbablitys.push_back(val); // Add probability of a given path
     }
 
-  cout << "NC 4" << endl;
     std::sort(cityProbablitys.begin(), cityProbablitys.end(), CIPsort);
   
     // Calculate total of all city probabilities
@@ -148,22 +141,17 @@ updateProbablity(ant, feasibleCityIndexes);
         total += prob.prob;
     }
   
-  cout << "NC 5" << endl;
     // Get random value
     float randomValue = rand() / static_cast<float>(RAND_MAX) * total;
-    cout << "Random Value: " << randomValue << endl;
     float cumulativeProbability = 0.0f;
   
     for (const auto& prob : cityProbablitys) {
         cumulativeProbability += prob.prob;
-        cout << "cumulativeProbability: " << cumulativeProbability << endl;
         if (cumulativeProbability >= randomValue) {
-            cout << "Next city: " << prob.cityId << endl;
             return prob.cityId;
         }
     }
 
-  cout << "NC 6" << endl;
     // Default return in case of an error
     return cityProbablitys.back().cityId;
 }
