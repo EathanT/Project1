@@ -22,13 +22,14 @@ public:
     */
     // Constructor that initializes the graphical representation of the ants
     AntGraphics(vector<shared_ptr<Ant>>& antRefs, vector<vector<float>>& pheromonesIn, vector<vector<float>>& proximitysIn,
-                vector<vector<float>>& probablitysIn, vector<shared_ptr<city>> citiesIn, float simSpeed)
+                vector<vector<float>>& probablitysIn, vector<shared_ptr<city>> citiesIn, float simSpeed, int totalIterations)
         : ants(antRefs),
           pheromones(pheromonesIn),
           proximitys(proximitysIn),
           probablitys(probablitysIn),
           cities(citiesIn),
-          speed(simSpeed) {
+          speed(simSpeed),
+          iterations(totalIterations){
 
         if (!checkAndValidateResources()) {
             throw runtime_error("Resource validation failed");
@@ -43,9 +44,12 @@ public:
     }
 
     // Draw text related to the current state of the ant
-    void drawText(shared_ptr<Ant>& ant) { 
-        string text = "ACO On Ant: " + to_string(ant->id);
-        DrawText(text.c_str(), 10, 10, 20, DARKGRAY);
+    void drawText(shared_ptr<Ant>& ant,int currInt) { 
+        string ACOAnt = "ACO On Ant: " + to_string(ant->id);
+        string currIteration = "Iteration: " + to_string(currInt); + " / " + to_string(iterations);
+
+        DrawText(ACOAnt.c_str(), 10, 10, 20, DARKGRAY); 
+        DrawText(currIteration.c_str(), 10, 30, 20, DARKGRAY);
         
         string antsRoute = "Current Ant Route: [";
         for (auto city : ant->route) {
@@ -105,6 +109,7 @@ private:
     vector<vector<float>>& probablitys;
     vector<shared_ptr<city>> cities;
     Texture2D antTexture;
+    int iterations;
 
     // Check and validate the resource paths and availability
     bool checkAndValidateResources() {
@@ -154,6 +159,9 @@ private:
         Vector2 target = currCity->position;
         Vector2 direction = {target.x - currAnt->position.x, target.y - currAnt->position.y};
         float length = sqrt(pow(direction.x, 2.0f) + pow(direction.y, 2.0f));
+        
+        currentRotation = atan2f(direction.y,direction.x) * (180.0f / M_PI) + 90;
+
         if (length > 0) {
             direction.x /= length;
             direction.y /= length;
@@ -169,6 +177,7 @@ private:
 
         float newPosX = currAnt->position.x + speedX;
         float newPosY = currAnt->position.y + speedY;
+
 
 
 
@@ -238,8 +247,15 @@ private:
 
     // Draw the ant at its current position
     void DrawAnt() const {
-        float antTexWidth = static_cast<float>(antTexture.width);
-        float antTexHeight = static_cast<float>(antTexture.height); 
+
+        float scale = 1.0f; 
+        if(cities.size() < 5.0f){ // Change size of the ant based on how many cities there are
+          scale = 15 / cities.size();
+          
+        }
+
+        float antTexWidth = static_cast<float>(antTexture.width) * scale;
+        float antTexHeight = static_cast<float>(antTexture.height) * scale; 
         Vector2 origin = {antTexWidth / 2, antTexHeight / 2};
         
         Rectangle sourceRec = {0.0f, 0.0f, antTexWidth, antTexHeight};

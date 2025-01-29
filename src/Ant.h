@@ -4,7 +4,9 @@
 #include "raylib.h"
 #include <vector>
 #include <memory>
+#include <bits/stdc++.h>
 #include <iostream>
+#include <cstring>
 #include <random>
 #include <cmath>
 #include <limits.h>

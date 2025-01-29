@@ -9,8 +9,8 @@ using namespace std;
 
 // Namespace containing constants for the ACO algorithm
 namespace constants {
-    constexpr float alpha = 1; // Importance of pheromone
-    constexpr float beta = 5;  // Importance of heuristic information
+    extern float alpha; // Importance of pheromone
+    extern float beta;  // Importance of heuristic information
 }
 
 // Random number generator
@@ -34,6 +34,15 @@ public:
 
       initializeParameters();
       initializePheromoneTrails();
+    }
+
+    void setAlpha(float newVal){
+      constants::alpha = newVal;
+    }
+
+
+    void setBeta(float newVal){
+      constants::beta = newVal;
     }
 
     // Returns a reference to the vector of ant objects

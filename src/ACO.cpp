@@ -1,5 +1,10 @@
 #include "ACO.h"
 
+namespace constants{
+  float alpha = 1.0f;
+  float beta = 5.0f;
+}
+
 /* 
  * Initializes parameters for the ACO algorithm:
  * - Sets up the proximity matrix using Euclidean distances
@@ -104,11 +109,11 @@ int ACO::selectNextCity(shared_ptr<Ant> ant) {
     }
 
     if (feasibleCityIndexes.empty()) {
-        return -1; // No feasible cities found
+        feasibleCityIndexes.push_back(ant->route[0]->id); // visit starting city
     }
 
     // Probability function call
-updateProbablity(ant, feasibleCityIndexes);
+    updateProbablity(ant, feasibleCityIndexes);
 
     struct cityIndexProb {
         int cityId;
