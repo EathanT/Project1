@@ -97,8 +97,21 @@ public:
         return length < 2;
     }
 
-    float speed{500.0f}; // Simulation speed
+    
+    void restart(){
 
+      int buttonWidth = 60;
+      int buttonHeight = 40;
+      int buttonX = 30;
+      int buttonY = (HEIGHT / 1.5) + 30;
+
+      DrawRectangleLines(buttonX, buttonY, buttonWidth, buttonHeight, BLACK);
+
+      DrawText("Restart",buttonX + (buttonWidth/2),buttonY + (buttonHeight/2), 10, RED);
+      
+    }
+
+    float speed{500.0f}; // Simulation speed
 private:
     float currentRotation{0.0f};
     shared_ptr<Ant> currAnt;
@@ -244,6 +257,8 @@ private:
         DrawText(TextFormat("Pheromones:\n\t %.3f", pheromones[i][j]), x + 5, y + 4 * margin, margin, GREEN);
         DrawText(TextFormat("Probablity:\n\t %.3f", probablitys[i][j]), x + 5, y + 8 * margin, margin, RED);
     }
+
+
 
     // Draw the ant at its current position
     void DrawAnt() const {

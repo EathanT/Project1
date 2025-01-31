@@ -115,7 +115,7 @@ int main() {
 
             antGraphics.drawText(ant,currIteration);
 
-
+            antGraphics.restart();
 
             // Reset or progress to the next ant upon completion
             if (antGraphics.reachedTarget()){
